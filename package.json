@@ -2,11 +2,38 @@
   "name": "google-sheets-mcp-server",
   "version": "1.0.0",
   "description": "MCP server for reading Google Sheets data with OAuth 2.0 authentication",
+  "author": "Google Sheets MCP Server Contributors",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "google-sheets-mcp-server": "dist/index.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "SETUP_GUIDE.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "google-sheets",
+    "google-drive",
+    "claude",
+    "claude-desktop",
+    "oauth2",
+    "spreadsheet",
+    "sheets-api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/google-sheets-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/google-sheets-mcp-server/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/google-sheets-mcp-server#readme",
   "scripts": {
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",

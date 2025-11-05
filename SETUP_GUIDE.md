@@ -2,7 +2,30 @@
 
 ## ✅ Step-by-Step Setup (5-10 minutes)
 
-### Step 1: Google Cloud OAuth Credentials
+### Step 1: Get google.json
+
+You need a `google.json` file. Choose one option:
+
+#### Option A: Request google.json from Author (Quickest - 1 minute)
+
+1. **Request the file**:
+   - Open an issue on the GitHub repository
+   - Ask for `google.json`
+   - You'll receive the file
+
+2. **Save it**:
+   ```bash
+   # Save as ~/.google-sheets-mcp-credentials.json
+   mv ~/Downloads/google.json ~/.google-sheets-mcp-credentials.json
+   ```
+
+3. **Done!** Skip to [Step 2: Configure Claude Desktop](#step-2-configure-claude-desktop)
+
+**Note**: Shared `google.json` has usage limits. For heavy use, use Option B.
+
+---
+
+#### Option B: Create Your Own using GCP (5-10 minutes)
 
 1. **Go to [Google Cloud Console](https://console.cloud.google.com/)**
 
@@ -29,21 +52,25 @@
    - Test users: Click "Add Users" → Add your email
    - Click "Save and Continue" through remaining steps
 
-5. **Create OAuth Client ID**:
+5. **Create OAuth Client ID and Download google.json**:
    - Go to "APIs & Services" → "Credentials"
    - Click "Create Credentials" → "OAuth client ID"
    - Application type: **Desktop app**
    - Name: "MCP Sheets Desktop Client"
    - Click "Create"
-   - **Download the JSON** (click download icon ⬇️)
+   - **Download the JSON file** (click download icon ⬇️)
 
-6. **Save Credentials File**:
+6. **Save as google.json**:
    ```bash
-   # Rename and move downloaded file
+   # This becomes your google.json
    mv ~/Downloads/client_secret_*.json ~/.google-sheets-mcp-credentials.json
    ```
 
+---
+
 ### Step 2: Configure Claude Desktop
+
+*Same for both Option A and Option B*
 
 Edit your Claude config file:
 
@@ -57,14 +84,22 @@ Add this configuration:
     "google-sheets": {
       "command": "node",
       "args": [
-        "/Users/adralessaturino/ai_projects/mcps/gdocs/dist/index.js"
+        "/ABSOLUTE/PATH/TO/google-sheets-mcp-server/dist/index.js"
       ]
     }
   }
 }
 ```
 
-**Important**: If you already have other MCP servers, add the "google-sheets" entry to your existing config.
+**Important**:
+- Replace `/ABSOLUTE/PATH/TO/google-sheets-mcp-server` with your actual installation path
+- If you already have other MCP servers, add the "google-sheets" entry to your existing config
+
+**Get your path**:
+```bash
+cd google-sheets-mcp-server
+pwd  # Copy this path and append /dist/index.js
+```
 
 ### Step 3: Restart Claude Desktop
 
@@ -94,14 +129,14 @@ Replace `YOUR_SPREADSHEET_ID` with an actual spreadsheet you have access to.
 
 ## 🔧 Troubleshooting
 
-### "Credentials file not found"
+### "Credentials file not found" or "google.json not found"
 
 Make sure the file exists:
 ```bash
 ls -la ~/.google-sheets-mcp-credentials.json
 ```
 
-If not, re-download from Google Cloud Console and save to that exact path.
+**Need google.json?** Request it from the author or create your own using GCP (see Step 1 above).
 
 ### "Authorization URL not showing in Claude"
 
@@ -110,7 +145,8 @@ If not, re-download from Google Cloud Console and save to that exact path.
 2. Ensure the path in config is correct (absolute path to `dist/index.js`)
 3. Try running manually to see the auth URL:
    ```bash
-   node /Users/adralessaturino/ai_projects/mcps/gdocs/dist/index.js
+   cd google-sheets-mcp-server
+   node dist/index.js
    ```
    (Press Ctrl+C after seeing the auth URL)
 

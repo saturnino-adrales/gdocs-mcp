@@ -18,7 +18,8 @@ A Model Context Protocol (MCP) server that provides read-only access to Google S
 ### 1. Install Dependencies
 
 ```bash
-cd /Users/adralessaturino/ai_projects/mcps/gdocs
+# Clone or download this repository, then:
+cd google-sheets-mcp-server
 npm install
 ```
 
@@ -32,20 +33,40 @@ This compiles TypeScript to JavaScript in the `dist/` directory.
 
 ## Google Cloud Setup
 
-### Step 1: Create a Google Cloud Project
+You need a `google.json` file for authentication. You have two options:
+
+### Option A: Request google.json from Author (Easier)
+
+**Quick setup** - Ask for pre-configured credentials:
+
+1. **Request the file**: Contact the project maintainer via GitHub Issues and ask for `google.json`
+2. **Save it**:
+   ```bash
+   # Save as ~/.google-sheets-mcp-credentials.json
+   mv ~/Downloads/google.json ~/.google-sheets-mcp-credentials.json
+   ```
+3. **Done!** Skip to [First-Time Authorization](#first-time-authorization)
+
+**Note**: Shared `google.json` has usage quotas. For heavy use, create your own using GCP below.
+
+---
+
+### Option B: Create Your Own using GCP (Recommended for Production)
+
+#### Step 1: Create a Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click **Select a project** → **New Project**
 3. Enter a project name (e.g., "MCP Sheets Access")
 4. Click **Create**
 
-### Step 2: Enable Google Sheets API
+#### Step 2: Enable Google Sheets API
 
 1. In your project, go to **APIs & Services** → **Library**
 2. Search for "Google Sheets API"
 3. Click on it and press **Enable**
 
-### Step 3: Create OAuth 2.0 Credentials
+#### Step 3: Create OAuth 2.0 Credentials and Download google.json
 
 1. Go to **APIs & Services** → **Credentials**
 2. Click **Create Credentials** → **OAuth client ID**
@@ -58,15 +79,21 @@ This compiles TypeScript to JavaScript in the `dist/` directory.
    - Application type: **Desktop app**
    - Name: "MCP Sheets Client" (or any name)
    - Click **Create**
-5. Download the JSON file (click the download icon)
-6. Save it as: `~/.google-sheets-mcp-credentials.json`
+5. **Download the JSON file** (click the download icon)
+6. **Save as `~/.google-sheets-mcp-credentials.json`**:
 
 ```bash
-# Move downloaded file to home directory
+# Rename and move the downloaded file
 mv ~/Downloads/client_secret_*.json ~/.google-sheets-mcp-credentials.json
 ```
 
-### Step 4: First-Time Authorization
+This is your `google.json` file!
+
+---
+
+### First-Time Authorization
+
+*Applies to both Option A and Option B*
 
 The first time you use the MCP server, you'll need to authorize it:
 
@@ -90,11 +117,24 @@ Add this to your Claude Desktop config file:
     "google-sheets": {
       "command": "node",
       "args": [
-        "/Users/adralessaturino/ai_projects/mcps/gdocs/dist/index.js"
+        "/ABSOLUTE/PATH/TO/google-sheets-mcp-server/dist/index.js"
       ]
     }
   }
 }
+```
+
+**Important**: Replace `/ABSOLUTE/PATH/TO/google-sheets-mcp-server` with the actual absolute path where you installed this server.
+
+**Example paths**:
+- macOS: `/Users/yourname/projects/google-sheets-mcp-server/dist/index.js`
+- Linux: `/home/yourname/projects/google-sheets-mcp-server/dist/index.js`
+- Windows: `C:\Users\yourname\projects\google-sheets-mcp-server\dist\index.js`
+
+**Tip**: Get the absolute path by running `pwd` in the project directory:
+```bash
+cd google-sheets-mcp-server
+pwd  # Copy this path and append /dist/index.js
 ```
 
 **Restart Claude Desktop** after updating the config.
@@ -199,10 +239,12 @@ npm run clean
 
 ### "Credentials file not found"
 
-Make sure you've saved your OAuth credentials to:
+Make sure you've saved your `google.json` file to:
 ```
 ~/.google-sheets-mcp-credentials.json
 ```
+
+**Need google.json?** [Request it from the author](#option-a-request-googlejson-from-author-easier) or [create your own using GCP](#option-b-create-your-own-using-gcp-recommended-for-production).
 
 ### "Authentication token expired"
 

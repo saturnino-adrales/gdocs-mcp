@@ -1,0 +1,45 @@
+# Source files
+src/
+tsconfig.json
+
+# Development files
+*.log
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Documentation (keep README.md, CHANGELOG.md, and SETUP_GUIDE.md)
+*.md
+!README.md
+!CHANGELOG.md
+!SETUP_GUIDE.md
+
+# Credentials and tokens (extra safety)
+*credentials.json
+*token.json
+
+# Node modules
+node_modules/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test files
+test/
+tests/
+*.test.ts
+*.spec.ts
+
+# Scripts
+scripts/
+authorize.sh
+exchange-token.js
