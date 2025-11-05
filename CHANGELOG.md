@@ -32,4 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No third-party data transmission
 - Secure credential management with `.gitignore` protection
 
-[1.0.0]: https://github.com/YOUR_USERNAME/google-sheets-mcp-server/releases/tag/v1.0.0
+[1.0.0]: https://github.com/saturnino-adrales/gdocs-mcp/releases/tag/v1.0.0
