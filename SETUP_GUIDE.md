@@ -105,17 +105,66 @@ pwd  # Copy this path and append /dist/index.js
 
 Completely quit and restart Claude Desktop for changes to take effect.
 
-### Step 4: First Authorization
+### Step 4: First Authorization (No localhost server needed!)
 
 The first time you use a Google Sheets tool in Claude:
 
-1. Claude will show an error with an authorization URL
-2. **Copy the URL** and open it in your browser
-3. Sign in with your Google account
-4. Click "Allow" to grant read access
-5. You'll see a success message
-6. The token is automatically saved to `~/.google-sheets-mcp-token.json`
-7. Try the command again in Claude - it should work now!
+1. **Claude will show an error with an authorization URL** like:
+   ```
+   https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&scope=...
+   ```
+
+2. **Click the URL** to open it in your browser
+
+3. **Sign in** with your Google account and **click "Allow"** to grant read access
+
+4. **Copy the redirect URL from your browser's address bar**
+   - After clicking "Allow", you'll be redirected to `http://localhost/?code=...`
+   - The page won't load (that's normal!)
+   - **Copy the entire URL** from the address bar - it contains your authorization code
+
+5. **Extract the authorization code**
+   - From the URL, copy everything between `code=` and `&scope`
+   - Example: `http://localhost/?code=4/0Ab32j90...&scope=...`
+   - The code is: `4/0Ab32j90...`
+
+6. **Exchange the code for tokens using curl**:
+   ```bash
+   curl -s -X POST https://oauth2.googleapis.com/token \
+     -d "code=YOUR_AUTHORIZATION_CODE_HERE" \
+     -d "client_id=$(jq -r '.installed.client_id' ~/.google-sheets-mcp-credentials.json)" \
+     -d "client_secret=$(jq -r '.installed.client_secret' ~/.google-sheets-mcp-credentials.json)" \
+     -d "redirect_uri=http://localhost" \
+     -d "grant_type=authorization_code"
+   ```
+
+   Replace `YOUR_AUTHORIZATION_CODE_HERE` with the code from step 5.
+
+   **Don't have jq?** Manually copy client_id and client_secret from `~/.google-sheets-mcp-credentials.json`:
+   ```bash
+   curl -s -X POST https://oauth2.googleapis.com/token \
+     -d "code=YOUR_AUTHORIZATION_CODE_HERE" \
+     -d "client_id=YOUR_CLIENT_ID" \
+     -d "client_secret=YOUR_CLIENT_SECRET" \
+     -d "redirect_uri=http://localhost" \
+     -d "grant_type=authorization_code"
+   ```
+
+7. **Save the response to the token file**:
+   ```bash
+   # The curl command returns JSON - save it to the token file:
+   curl -s -X POST https://oauth2.googleapis.com/token \
+     -d "code=YOUR_CODE" \
+     -d "client_id=YOUR_CLIENT_ID" \
+     -d "client_secret=YOUR_CLIENT_SECRET" \
+     -d "redirect_uri=http://localhost" \
+     -d "grant_type=authorization_code" \
+     > ~/.google-sheets-mcp-token.json
+   ```
+
+8. **Try the command again in Claude** - it should work now!
+
+**Note**: The authorization code is single-use and expires quickly. If you get an "invalid grant" error, start over from step 1 to get a fresh code.
 
 ## 🧪 Test It Out
 

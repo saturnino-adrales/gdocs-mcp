@@ -1,5 +1,6 @@
 # Dependencies (175MB+ - MUST ignore)
 node_modules/
+npm-cache/
 
 # Build output
 dist/
