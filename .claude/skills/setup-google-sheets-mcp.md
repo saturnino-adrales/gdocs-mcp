@@ -96,56 +96,17 @@ node exchange-token.js
 
 ## Step 5: Configure Claude Code Settings
 
-### 5a. Find Your Project Path
+Claude will automatically configure your Claude Code settings. Just tell Claude:
 
-The MCP server needs the full path to this project. Run:
+> "Configure my Claude Code settings to use the Google Sheets MCP server at: [paste the output from pwd]"
 
-```bash
-pwd
-```
+Claude will:
+1. Read your current `~/.claude/settings.json`
+2. Add the Google Sheets MCP server configuration
+3. Update the settings file with the correct path
+4. Verify the configuration is correct
 
-**Copy the output** - you'll need it in Step 5b.
-
-### 5b. Update Claude Settings
-
-Edit `~/.claude/settings.json` and add:
-
-```json
-{
-  "mcpServers": {
-    "google-sheets": {
-      "command": "node",
-      "args": ["<PASTE_PATH_FROM_5a>/dist/index.js"]
-    }
-  }
-}
-```
-
-**Example (Windows)**:
-```json
-{
-  "mcpServers": {
-    "google-sheets": {
-      "command": "node",
-      "args": ["C:\\Users\\jonaz\\gdocs-mcp\\dist\\index.js"]
-    }
-  }
-}
-```
-
-**Example (Mac/Linux)**:
-```json
-{
-  "mcpServers": {
-    "google-sheets": {
-      "command": "node",
-      "args": ["/Users/yourname/projects/google-sheets-mcp-server/dist/index.js"]
-    }
-  }
-}
-```
-
-**After editing**: Restart Claude Code to load the new settings.
+**After Claude configures it**: Restart Claude Code to load the new settings.
 
 ---
 
