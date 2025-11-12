@@ -7,16 +7,43 @@
 - `auto_configure` (default: true): Automatically configure Claude settings
 
 **Execution Flow**:
-1. Verify prerequisites (Node.js, npm)
-2. Guide OAuth credential setup in Google Cloud
-3. Build the project
-4. Exchange OAuth token
-5. Configure Claude Code settings
-6. Verify the setup works
+1. Request tester access on GitHub
+2. Verify prerequisites (Node.js, npm)
+3. Get OAuth credentials file from maintainer
+4. Build the project
+5. Exchange OAuth token
+6. Configure Claude Code settings
+7. Verify the setup works
 
 ---
 
-## Step 1: Verify Prerequisites
+## Step 1: Request Tester Access (Required First!)
+
+Before you can authenticate with Google, you need to be added as a tester on the Google Cloud Platform project.
+
+### Why This Is Needed
+
+This MCP server uses OAuth authentication that's currently in testing mode. Only authorized test users can authenticate. Without tester access, the OAuth flow will fail with "Access Denied" errors.
+
+### How to Request Access
+
+1. **Go to the GitHub repository**: [Open the Issues page](../../issues)
+2. **Create a new issue** with:
+   - **Title**: "Request GCP Tester Access"
+   - **Body**:
+     ```
+     Please add me as a tester on the GCP project.
+
+     My Google account email: your-email@gmail.com
+     ```
+3. **Wait for approval**: The repository maintainer will add you and notify you
+4. **Check your email**: You'll receive a confirmation when you're added
+
+⚠️ **Do not proceed** to the next steps until you've been added as a tester!
+
+---
+
+## Step 2: Verify Prerequisites
 
 Check that you have Node.js 18+ and npm installed:
 
@@ -33,36 +60,21 @@ npm --version
 
 ---
 
-## Step 2: Get Google OAuth Credentials
+## Step 3: Get OAuth Credentials File
 
-This is a one-time manual step in Google Cloud Console:
+Once you've been added as a tester, you'll need the OAuth credentials file:
 
-### 2a. Create/Select Google Cloud Project
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Note the project ID (you'll need it)
+1. **Check if it's in the repo**: Some maintainers include it
+2. **Ask the maintainer**: Request the `google-sheets-mcp-credentials.json` file
+3. **Save it** to your home directory:
+   - **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-credentials.json`
+   - **Mac/Linux**: `~/.google-sheets-mcp-credentials.json`
 
-### 2b. Enable Required APIs
-1. Go to "APIs & Services" → "Library"
-2. Search for and enable:
-   - **Google Sheets API**
-   - **Google Drive API**
-
-### 2c. Create OAuth Credentials
-1. Go to "APIs & Services" → "Credentials"
-2. Click "Create Credentials" → "OAuth 2.0 Client ID"
-3. Choose "Desktop application"
-4. Click "Create"
-5. Download the JSON file
-6. Save it as: `~/.google-sheets-mcp-credentials.json`
-
-**Location by OS**:
-- **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-credentials.json`
-- **Mac/Linux**: `~/.google-sheets-mcp-credentials.json`
+⚠️ **Security Note**: This file contains OAuth app credentials (not secrets) but should not be committed to public repos.
 
 ---
 
-## Step 3: Build the Project
+## Step 4: Build the Project
 
 ```bash
 npm install
@@ -76,7 +88,7 @@ npm run build
 
 ---
 
-## Step 4: Exchange OAuth Token
+## Step 5: Exchange OAuth Token
 
 ```bash
 node exchange-token.js
@@ -94,7 +106,7 @@ node exchange-token.js
 
 ---
 
-## Step 5: Configure Claude Code Settings
+## Step 6: Configure Claude Code Settings
 
 Claude will automatically configure your Claude Code settings. Just tell Claude:
 
@@ -110,7 +122,7 @@ Claude will:
 
 ---
 
-## Step 6: Verify Setup Works
+## Step 7: Verify Setup Works
 
 Ask Claude to test the connection:
 
@@ -128,9 +140,11 @@ Or provide a Google Sheets URL you have access to:
 
 ## Troubleshooting
 
-### "credentials.json not found"
-- Make sure you saved Google OAuth JSON to `~/.google-sheets-mcp-credentials.json`
-- Check the file exists: `ls ~/.google-sheets-mcp-credentials.json`
+### "Access Denied" or "Authorization Error" during OAuth
+⚠️ **Most Common Issue**: You haven't been added as a tester yet!
+- Go back to **Step 1** and request tester access on GitHub
+- Wait for confirmation that you've been added to the GCP project
+- Make sure you're using the same Google account email you provided
 
 ### "token.json not found"
 - Run `node exchange-token.js` again

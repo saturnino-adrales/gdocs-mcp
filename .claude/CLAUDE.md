@@ -11,8 +11,8 @@ Ask Claude to help with setup:
 ```
 
 Claude will guide you through:
-1. ✅ Checking prerequisites (Node.js, npm)
-2. 🔐 Setting up OAuth credentials in Google Cloud
+1. 📝 Requesting tester access on GitHub
+2. ✅ Checking prerequisites (Node.js, npm)
 3. 🔨 Building the project
 4. 🔑 Getting an authentication token
 5. ⚙️ Configuring Claude Code
@@ -30,9 +30,21 @@ Example:
 
 ## Prerequisites
 
+### 1. Request Tester Access (Required First!)
+
+Before setting up, you need to be added as a tester on the Google Cloud Platform project:
+
+1. **Open an issue** on this GitHub repository
+2. **Request**: "Please add me as a tester on the GCP project"
+3. **Provide**: Your Google account email address
+4. **Wait for approval** - You'll be notified when you're added
+
+⚠️ **Important**: Without tester access, the OAuth authentication will fail.
+
+### 2. Technical Requirements
+
 - Node.js 18+ (check with `node --version`)
 - npm (check with `npm --version`)
-- A Google Cloud project (free tier works)
 
 ## How It Works
 
