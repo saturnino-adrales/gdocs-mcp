@@ -2,15 +2,15 @@
 
 Welcome! This is an MCP (Model Context Protocol) server that gives Claude read/write access to Google Sheets.
 
-## Quick Start (30 seconds)
+## Quick Start
 
-Run this to get started:
+Ask Claude to help with setup:
 
-```bash
-/setup-google-sheets-mcp
+```
+"Help me set up the Google Sheets MCP server"
 ```
 
-This skill will guide you through:
+Claude will guide you through:
 1. ✅ Checking prerequisites (Node.js, npm)
 2. 🔐 Setting up OAuth credentials in Google Cloud
 3. 🔨 Building the project
@@ -43,9 +43,15 @@ Example:
 
 ---
 
-## Manual Setup (If You Prefer)
+## How Claude Helps
 
-If you want to walk through setup step-by-step, see:
+When you ask Claude for help, it reads the detailed setup guide and:
+- Walks you through each step interactively
+- Helps troubleshoot any issues
+- Verifies everything works
+- Answers questions about how it all works
+
+See the full setup documentation:
 @skills/setup-google-sheets-mcp.md
 
 ---
@@ -105,22 +111,17 @@ Your Claude settings are updated at `~/.claude/settings.json` with:
 
 ## Troubleshooting
 
-**The skill won't run?**
-- Make sure you're in this project directory
-- Try: `npm install && npm run build`
+**Having issues during setup?**
+- Ask Claude: "I'm having trouble setting up the Google Sheets MCP server"
+- Share the error message and which step you're stuck on
 
-**Claude can't find the MCP server?**
+**After setup - Claude can't find the MCP server?**
 - Check `~/.claude/settings.json` has correct absolute path
 - Make sure `dist/index.js` exists
 - Restart Claude Code
 
-**Auth failing?**
-- Run `node exchange-token.js` to get fresh token
-- Make sure Google Cloud OAuth credentials are saved to `~/.google-sheets-mcp-credentials.json`
-
-Need more help? Check the full skill documentation:
-@skills/setup-google-sheets-mcp.md
+For other issues, ask Claude about the problem and it will help you troubleshoot.
 
 ---
 
-**Ready to set up?** Run `/setup-google-sheets-mcp` 🚀
+**Ready to set up?** Ask Claude: "Help me set up the Google Sheets MCP server" 🚀
