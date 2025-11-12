@@ -2,17 +2,18 @@
 
 **Purpose**: Automate the complete setup process for the Google Sheets MCP server so users can use it with Claude immediately.
 
-**Setup Model**: Shared workspace - all users access the same Google Sheets using a shared authentication token.
+**Setup Model**: Each user authenticates with their own Google account. **Instead of sharing the maintainer's token** (which gives Claude access to the maintainer's files), each user uses their own token tied to their Google account.
 
 **Inputs**:
 - `auto_configure` (default: true): Automatically configure Claude settings
 
 **Execution Flow**:
 1. Verify prerequisites (Node.js, npm)
-2. Build the project
-3. Get shared authentication token from maintainer
-4. Configure Claude Code settings
-5. Verify the setup works
+2. Get OAuth credentials file from maintainer
+3. Build the project
+4. Authenticate with YOUR Google account
+5. Configure Claude Code settings
+6. Verify the setup works
 
 ---
 
@@ -33,7 +34,21 @@ npm --version
 
 ---
 
-## Step 2: Build the Project
+## Step 2: Get OAuth Credentials File
+
+Contact the repository maintainer to get the OAuth credentials file.
+
+**What you'll receive**: `google-sheets-mcp-credentials.json`
+
+**What this is**: OAuth app credentials (Client ID + Client Secret) that allow the authentication flow to work. This file is safe to share among team members - it's like the "app registration" with Google.
+
+**Where to save it**:
+- **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-credentials.json`
+- **Mac/Linux**: `~/.google-sheets-mcp-credentials.json`
+
+---
+
+## Step 3: Build the Project
 
 ```bash
 npm install
@@ -47,23 +62,35 @@ npm run build
 
 ---
 
-## Step 3: Get Shared Authentication Token
+## Step 4: Authenticate with YOUR Google Account
 
-Contact the repository maintainer to get the shared authentication token file.
+Run the authentication script to create YOUR OWN token:
 
-**What you'll receive**: `google-sheets-mcp-token.json`
+```bash
+node exchange-token.js
+```
 
-**Where to save it**:
-- **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-token.json`
-- **Mac/Linux**: `~/.google-sheets-mcp-token.json`
+**What happens**:
+1. Opens your browser to Google login
+2. **Log in with YOUR Google account** (the account that has access to the sheets)
+3. Approve access to Sheets/Drive
+4. Token automatically saved to `~/.google-sheets-mcp-token.json`
 
-⚠️ **Important**: This token provides access to the shared Google Sheets. Keep it secure and never commit it to git.
+**Why YOUR account?**
+- The token is tied to YOUR Google account
+- You can only access sheets YOU have permission to access
+- The maintainer will add YOUR Google account to the necessary sheets
+- If your token is compromised, only your access is affected (not everyone's)
 
-**Sheet Access**: The maintainer will also add your Google account to the specific sheets you need to access (View or Edit permissions as needed).
+**If browser doesn't open**:
+- Copy the URL from terminal output
+- Paste it in your browser manually
+
+⚠️ **Important**: Make sure you log in with the Google account that the maintainer has added to the shared sheets!
 
 ---
 
-## Step 4: Configure Claude Code Settings
+## Step 5: Configure Claude Code Settings
 
 Claude will automatically configure your Claude Code settings. Just tell Claude:
 
@@ -79,7 +106,7 @@ Claude will:
 
 ---
 
-## Step 5: Verify Setup Works
+## Step 6: Verify Setup Works
 
 Ask Claude to test the connection:
 
@@ -97,11 +124,15 @@ Or provide a Google Sheets URL you have access to:
 
 ## Troubleshooting
 
+### "credentials.json not found"
+- Make sure you saved the OAuth credentials file to the correct location:
+  - **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-credentials.json`
+  - **Mac/Linux**: `~/.google-sheets-mcp-credentials.json`
+- Contact the maintainer to get the credentials file
+
 ### "token.json not found"
-- Make sure you saved the shared token file to the correct location:
-  - **Windows**: `C:\Users\YourUsername\.google-sheets-mcp-token.json`
-  - **Mac/Linux**: `~/.google-sheets-mcp-token.json`
-- Contact the maintainer to get a fresh copy of the token file
+- Run `node exchange-token.js` to authenticate with YOUR Google account
+- Make sure you complete the OAuth flow in the browser
 
 ### "MCP server not found" in Claude Code
 - Check the path in `~/.claude/settings.json` is correct (absolute path, not relative)
@@ -109,27 +140,29 @@ Or provide a Google Sheets URL you have access to:
 - Restart Claude Code after editing settings
 
 ### "Permission denied" or "Access denied" when accessing sheets
-- Ask the maintainer to add your Google account to the specific sheet
-- Make sure you're using the correct Google account that was added to the sheet
+- Ask the maintainer to add YOUR Google account (the one you authenticated with) to the specific sheet
+- Verify you authenticated with the correct Google account (run `node exchange-token.js` again if needed)
 - Check that the sheet URL is correct
+- Make sure you have View or Edit permissions on the sheet
 
 ### "Cannot find module googleapis"
 - Run `npm install` again
 - Delete `node_modules/` and reinstall: `rm -rf node_modules && npm install`
 
 ### Token expired or invalid
-- Contact the maintainer to get a refreshed token file
-- The token may need to be regenerated periodically
+- Run `node exchange-token.js` again to refresh YOUR token
+- Your token may expire after extended periods of inactivity
 
 ---
 
 ## What Gets Created
 
-During setup, this file should be in your **home directory** (not the repo):
+During setup, these files will be in your **home directory** (not the repo):
 
-- `~/.google-sheets-mcp-token.json` - Shared authentication token (provided by maintainer)
+- `~/.google-sheets-mcp-credentials.json` - OAuth app credentials (provided by maintainer)
+- `~/.google-sheets-mcp-token.json` - YOUR authentication token (created when you authenticate)
 
-**⚠️ Important**: Never commit this file to git - it provides access to the shared Google Sheets workspace.
+**⚠️ Important**: Never commit these files to git. The token is tied to YOUR Google account and provides access only to sheets YOU have permission to access.
 
 ---
 
@@ -153,8 +186,9 @@ Once setup is complete, ask Claude to:
 
 If you get stuck:
 1. Check the **Troubleshooting** section above
-2. Contact the maintainer if you need a fresh token file
-3. Make sure the path in `~/.claude/settings.json` uses absolute path (not relative)
-4. Restart Claude Code after any configuration changes
+2. Try re-authenticating: `node exchange-token.js`
+3. Contact the maintainer to verify your Google account has been added to the necessary sheets
+4. Make sure the path in `~/.claude/settings.json` uses absolute path (not relative)
+5. Restart Claude Code after any configuration changes
 
 Good luck! 🚀

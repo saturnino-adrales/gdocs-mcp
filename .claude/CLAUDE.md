@@ -12,10 +12,11 @@ Ask Claude to help with setup:
 
 Claude will guide you through:
 1. ✅ Checking prerequisites (Node.js, npm)
-2. 🔨 Building the project
-3. 🔑 Getting the shared authentication token
-4. ⚙️ Configuring Claude Code
-5. ✨ Verifying it works
+2. 📥 Getting OAuth credentials from maintainer
+3. 🔨 Building the project
+4. 🔑 Authenticating with YOUR Google account
+5. ⚙️ Configuring Claude Code
+6. ✨ Verifying it works
 
 ## What This Does
 
@@ -31,16 +32,23 @@ Example:
 
 - Node.js 18+ (check with `node --version`)
 - npm (check with `npm --version`)
-- Access to the shared Google Sheets token file (provided by maintainer)
+- A Google account with access to the Google Sheets you need to work with
+- OAuth credentials file (provided by maintainer)
 
 ## How It Works
 
-This is a **shared workspace** setup:
+**Instead of sharing the maintainer's token** (which gives Claude access to the maintainer's files), each user authenticates with their own Google account:
 
-1. **Maintainer Authentication**: The repository maintainer has authenticated once with Google
-2. **Shared Token**: You'll receive the authentication token file to access the shared Google Sheets
-3. **MCP Integration**: Claude uses the shared token to access Google Sheets APIs
-4. **Sheet Permissions**: You'll be added to the specific Google Sheets you need to access
+1. **Shared OAuth App**: The maintainer provides OAuth credentials (the "app registration")
+2. **Individual Authentication**: You authenticate once with YOUR Google account
+3. **Your Token**: A token is created tied to YOUR Google account
+4. **MCP Integration**: Claude uses YOUR token to access Google Sheets APIs
+5. **Your Permissions**: You can only access sheets that YOUR Google account has permission to access
+
+**Security Benefits:**
+- Each user has their own token that can be revoked independently
+- Google audit logs show which user made changes
+- No shared credentials that could compromise everyone
 
 ---
 
@@ -90,9 +98,10 @@ dist/
 
 ### Auth Files (Not in Repo)
 These files should be in your home directory:
-- `~/.google-sheets-mcp-token.json` - Shared authentication token (provided by maintainer)
+- `~/.google-sheets-mcp-credentials.json` - OAuth app credentials (provided by maintainer, safe to share)
+- `~/.google-sheets-mcp-token.json` - YOUR authentication token (created when you authenticate)
 
-⚠️ **Security**: Never commit this token to git - it provides access to the shared Google Sheets.
+⚠️ **Security**: Never commit these files to git. The token is tied to YOUR Google account and provides access to sheets you have permission to access.
 
 ### Configuration Files
 Your Claude settings are updated at `~/.claude/settings.json` with:
