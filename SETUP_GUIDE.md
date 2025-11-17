@@ -1,90 +1,139 @@
 # Quick Setup Guide
 
-## ✅ Step-by-Step Setup (5-10 minutes)
+## Overview
 
-### Step 1: Get google.json
+This guide will help you set up the Google Sheets MCP server so Claude can access your Google Sheets. The setup uses a **personal authentication model** where each user authenticates with their own Google account.
 
-You need a `google.json` file. Choose one option:
+**Setup Time**: 5-10 minutes
 
-#### Option A: Request google.json from Author (Quickest - 1 minute)
-
-1. **Request the file**:
-   - Open an issue on the GitHub repository
-   - Ask for `google.json`
-   - You'll receive the file
-
-2. **Save it**:
-   ```bash
-   # Save as ~/.google-sheets-mcp-credentials.json
-   mv ~/Downloads/google.json ~/.google-sheets-mcp-credentials.json
-   ```
-
-3. **Done!** Skip to [Step 2: Configure Claude Desktop](#step-2-configure-claude-desktop)
-
-**Note**: Shared `google.json` has usage limits. For heavy use, use Option B.
+**What You'll Need**:
+- Node.js 18+ and npm
+- A Google account with access to the sheets you want to use
+- OAuth credentials file from the maintainer
 
 ---
 
-#### Option B: Create Your Own using GCP (5-10 minutes)
+## Step 1: Verify Prerequisites
 
-1. **Go to [Google Cloud Console](https://console.cloud.google.com/)**
+Check that you have Node.js and npm installed:
 
-2. **Create a New Project**:
-   - Click "Select a project" → "New Project"
-   - Name: "MCP Sheets Access" (or anything you like)
-   - Click "Create"
+```bash
+node --version
+npm --version
+```
 
-3. **Enable Google Sheets API**:
-   - Go to "APIs & Services" → "Library"
-   - Search: "Google Sheets API"
-   - Click it → Press "Enable"
+**Expected**: Node.js v18+ and npm v9+
 
-4. **Configure OAuth Consent Screen**:
-   - Go to "APIs & Services" → "OAuth consent screen"
-   - User Type: Choose "External"
-   - App name: "MCP Sheets Client"
-   - User support email: Your email
-   - Developer contact: Your email
-   - Scopes: Click "Add or Remove Scopes"
-     - Search for: `https://www.googleapis.com/auth/spreadsheets.readonly`
-     - Check the box next to it
-     - Click "Update"
-   - Test users: Click "Add Users" → Add your email
-   - Click "Save and Continue" through remaining steps
-
-5. **Create OAuth Client ID and Download google.json**:
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "OAuth client ID"
-   - Application type: **Desktop app**
-   - Name: "MCP Sheets Desktop Client"
-   - Click "Create"
-   - **Download the JSON file** (click download icon ⬇️)
-
-6. **Save as google.json**:
-   ```bash
-   # This becomes your google.json
-   mv ~/Downloads/client_secret_*.json ~/.google-sheets-mcp-credentials.json
-   ```
+**If missing**: Download from https://nodejs.org/ (LTS recommended) and restart your terminal
 
 ---
 
-### Step 2: Configure Claude Desktop
+## Step 2: Get OAuth Credentials
 
-*Same for both Option A and Option B*
+Contact the repository maintainer to get the OAuth credentials file.
 
-Edit your Claude config file:
+**What you'll receive**: `google-sheets-mcp-credentials.json`
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**What this is**: OAuth app credentials that allow the authentication flow to work. This file is safe to share among team members.
 
-Add this configuration:
+**Where to save it**:
 
+**Windows**:
+```bash
+# Save to your home directory
+C:\Users\YourUsername\.google-sheets-mcp-credentials.json
+```
+
+**Mac/Linux**:
+```bash
+# Save to your home directory
+~/.google-sheets-mcp-credentials.json
+```
+
+---
+
+## Step 3: Build the Project
+
+```bash
+npm install
+npm run build
+```
+
+**What this does**:
+- Installs dependencies
+- Compiles TypeScript to JavaScript
+- Creates `dist/` directory with compiled code
+
+---
+
+## Step 4: Authenticate with Your Google Account
+
+Run the authentication script:
+
+```bash
+node exchange-token.js
+```
+
+**What happens**:
+1. Opens your browser to Google login
+2. **Log in with YOUR Google account** (the one with access to the sheets)
+3. Approve access to Sheets/Drive
+4. Token automatically saved to `~/.google-sheets-mcp-token.json`
+
+**Why your own account?**
+- The token is tied to YOUR Google account
+- You can only access sheets YOU have permission to access
+- If your token is compromised, only your access is affected
+- The maintainer will add your Google account to necessary sheets
+
+**Troubleshooting**:
+- If the browser doesn't open, copy the URL from terminal and paste in your browser
+- Make sure you log in with the Google account that has access to the sheets
+
+---
+
+## Step 5: Configure Claude Code
+
+Ask Claude to configure your settings:
+
+```
+"Configure my Claude Code settings to use the Google Sheets MCP server at: [paste output from pwd]"
+```
+
+Claude will:
+1. Read your current `~/.claude/settings.json`
+2. Add the Google Sheets MCP server configuration
+3. Update with the correct absolute path
+4. Verify the configuration
+
+**After configuration**: Restart Claude Code to load the new settings
+
+**Manual configuration** (if needed):
+
+Edit `~/.claude/settings.json`:
+
+**Windows**:
 ```json
 {
   "mcpServers": {
     "google-sheets": {
       "command": "node",
       "args": [
-        "/ABSOLUTE/PATH/TO/google-sheets-mcp-server/dist/index.js"
+        "C:\\Users\\YourUsername\\path\\to\\gdocs-mcp\\dist\\index.js"
+      ]
+    }
+  }
+}
+```
+
+**Mac/Linux**:
+```json
+{
+  "mcpServers": {
+    "google-sheets": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/gdocs-mcp/dist/index.js"
       ]
     }
   }
@@ -92,148 +141,162 @@ Add this configuration:
 ```
 
 **Important**:
-- Replace `/ABSOLUTE/PATH/TO/google-sheets-mcp-server` with your actual installation path
-- If you already have other MCP servers, add the "google-sheets" entry to your existing config
+- Use absolute paths, not relative paths
+- Replace with your actual project directory path
+- If you have other MCP servers, add "google-sheets" to your existing config
 
-**Get your path**:
+---
+
+## Step 6: Test the Setup
+
+Ask Claude to test the connection:
+
+```
+"Test the Google Sheets MCP connection. What tools are available?"
+```
+
+Or test with a real spreadsheet:
+
+```
+"List all the sheets in this spreadsheet: https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+```
+
+**Success**: Claude returns information about your spreadsheet
+
+**If it doesn't work**: See troubleshooting section below
+
+---
+
+## Available Tools
+
+Once setup is complete, Claude can use these tools:
+
+### Read Operations
+- `google_sheets_get_info` - Get spreadsheet metadata (title, sheets, size)
+- `google_sheets_list_tabs` - List all tabs/sheets in a spreadsheet
+- `google_sheets_get_tab_data` - Read cell data from a specific tab
+
+### Write Operations
+- `google_sheets_append_data` - Append rows to a sheet
+- `google_sheets_update_cells` - Update specific cells
+- `google_sheets_create_sheet` - Create new sheets/tabs
+
+---
+
+## Troubleshooting
+
+### "credentials.json not found"
+- Verify file exists: `ls ~/.google-sheets-mcp-credentials.json`
+- Make sure you saved it to your home directory (not the project directory)
+- Contact maintainer to get the credentials file
+
+### "token.json not found"
+- Run `node exchange-token.js` to authenticate
+- Make sure you complete the OAuth flow in the browser
+
+### "MCP server not found" in Claude Code
+- Check path in `~/.claude/settings.json` is absolute, not relative
+- Verify `dist/index.js` exists: `ls dist/index.js`
+- Restart Claude Code after editing settings
+
+### "Permission denied" when accessing sheets
+- Ask maintainer to add YOUR Google account to the sheet
+- Verify you authenticated with the correct Google account
+- Run `node exchange-token.js` again if needed
+
+### "Cannot find module googleapis"
+- Run `npm install` again
+- Try deleting and reinstalling: `rm -rf node_modules && npm install`
+
+### Token expired
+- Run `node exchange-token.js` to refresh your token
+- Tokens may expire after extended inactivity
+
+---
+
+## Security Notes
+
+**Files Created** (in your home directory, NOT in the repo):
+- `~/.google-sheets-mcp-credentials.json` - OAuth app credentials (from maintainer)
+- `~/.google-sheets-mcp-token.json` - YOUR authentication token
+
+**Important**:
+- Never commit these files to git
+- The token is tied to YOUR Google account
+- You can only access sheets YOU have permission to access
+- Read-only access by default (unless you modify scopes)
+
+**Revoke Access**: Visit https://myaccount.google.com/permissions to revoke access anytime
+
+---
+
+## What You Can Do Now
+
+Ask Claude to work with your sheets:
+
+**Read Operations**:
+```
+"Get metadata about this spreadsheet: [URL]"
+"List all tabs in this sheet: [URL]"
+"Read data from the 'Results' tab in [URL]"
+"Show me rows 1-10 from [URL]"
+```
+
+**Write Operations**:
+```
+"Append these test results to my sheet: [URL]"
+"Update cells A1:C1 with these headers: [URL]"
+"Create a new sheet called 'Archive' in [URL]"
+```
+
+---
+
+## Need More Help?
+
+1. Check the troubleshooting section above
+2. Try re-authenticating: `node exchange-token.js`
+3. Verify your Google account has been added to the sheets
+4. Ensure `~/.claude/settings.json` uses absolute paths
+5. Restart Claude Code after configuration changes
+6. Review the main [README.md](./README.md) for detailed documentation
+
+**Having issues?** Ask Claude: "I'm having trouble with the Google Sheets MCP setup" and share the error message.
+
+---
+
+## Quick Reference
+
+**Get your project path**:
 ```bash
-cd google-sheets-mcp-server
-pwd  # Copy this path and append /dist/index.js
+cd gdocs-mcp
+pwd  # Copy this path
 ```
 
-### Step 3: Restart Claude Desktop
-
-Completely quit and restart Claude Desktop for changes to take effect.
-
-### Step 4: First Authorization (No localhost server needed!)
-
-The first time you use a Google Sheets tool in Claude:
-
-1. **Claude will show an error with an authorization URL** like:
-   ```
-   https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&scope=...
-   ```
-
-2. **Click the URL** to open it in your browser
-
-3. **Sign in** with your Google account and **click "Allow"** to grant read access
-
-4. **Copy the redirect URL from your browser's address bar**
-   - After clicking "Allow", you'll be redirected to `http://localhost/?code=...`
-   - The page won't load (that's normal!)
-   - **Copy the entire URL** from the address bar - it contains your authorization code
-
-5. **Extract the authorization code**
-   - From the URL, copy everything between `code=` and `&scope`
-   - Example: `http://localhost/?code=4/0Ab32j90...&scope=...`
-   - The code is: `4/0Ab32j90...`
-
-6. **Exchange the code for tokens using curl**:
-   ```bash
-   curl -s -X POST https://oauth2.googleapis.com/token \
-     -d "code=YOUR_AUTHORIZATION_CODE_HERE" \
-     -d "client_id=$(jq -r '.installed.client_id' ~/.google-sheets-mcp-credentials.json)" \
-     -d "client_secret=$(jq -r '.installed.client_secret' ~/.google-sheets-mcp-credentials.json)" \
-     -d "redirect_uri=http://localhost" \
-     -d "grant_type=authorization_code"
-   ```
-
-   Replace `YOUR_AUTHORIZATION_CODE_HERE` with the code from step 5.
-
-   **Don't have jq?** Manually copy client_id and client_secret from `~/.google-sheets-mcp-credentials.json`:
-   ```bash
-   curl -s -X POST https://oauth2.googleapis.com/token \
-     -d "code=YOUR_AUTHORIZATION_CODE_HERE" \
-     -d "client_id=YOUR_CLIENT_ID" \
-     -d "client_secret=YOUR_CLIENT_SECRET" \
-     -d "redirect_uri=http://localhost" \
-     -d "grant_type=authorization_code"
-   ```
-
-7. **Save the response to the token file**:
-   ```bash
-   # The curl command returns JSON - save it to the token file:
-   curl -s -X POST https://oauth2.googleapis.com/token \
-     -d "code=YOUR_CODE" \
-     -d "client_id=YOUR_CLIENT_ID" \
-     -d "client_secret=YOUR_CLIENT_SECRET" \
-     -d "redirect_uri=http://localhost" \
-     -d "grant_type=authorization_code" \
-     > ~/.google-sheets-mcp-token.json
-   ```
-
-8. **Try the command again in Claude** - it should work now!
-
-**Note**: The authorization code is single-use and expires quickly. If you get an "invalid grant" error, start over from step 1 to get a fresh code.
-
-## 🧪 Test It Out
-
-In Claude Desktop, try:
-
-```
-"List the tabs in this spreadsheet: https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit"
-```
-
-Replace `YOUR_SPREADSHEET_ID` with an actual spreadsheet you have access to.
-
-## 🔧 Troubleshooting
-
-### "Credentials file not found" or "google.json not found"
-
-Make sure the file exists:
+**Verify setup**:
 ```bash
-ls -la ~/.google-sheets-mcp-credentials.json
+# Check credentials exist
+ls ~/.google-sheets-mcp-credentials.json
+
+# Check token exists
+ls ~/.google-sheets-mcp-token.json
+
+# Check build succeeded
+ls dist/index.js
+
+# Check Claude settings
+cat ~/.claude/settings.json
 ```
 
-**Need google.json?** Request it from the author or create your own using GCP (see Step 1 above).
-
-### "Authorization URL not showing in Claude"
-
-1. Check Claude's MCP logs:
-   - macOS: `~/Library/Logs/Claude/mcp*.log`
-2. Ensure the path in config is correct (absolute path to `dist/index.js`)
-3. Try running manually to see the auth URL:
-   ```bash
-   cd google-sheets-mcp-server
-   node dist/index.js
-   ```
-   (Press Ctrl+C after seeing the auth URL)
-
-### "Token has expired"
-
-Delete the token and re-authorize:
+**Re-authenticate**:
 ```bash
-rm ~/.google-sheets-mcp-token.json
+node exchange-token.js
 ```
 
-Restart Claude Desktop and try again.
+**Rebuild after changes**:
+```bash
+npm run build
+```
 
-### "Unable to read spreadsheet"
+---
 
-1. Make sure you're signed in with the Google account that has access
-2. Check that the spreadsheet is shared with you
-3. Verify the URL format is correct
-
-## 📚 Available Tools
-
-Once setup is complete, you can use these tools:
-
-### 1. google_sheets_get_info
-Get spreadsheet metadata (title, tabs, size)
-
-### 2. google_sheets_list_tabs
-List all tabs/sheets in a spreadsheet
-
-### 3. google_sheets_get_tab_data
-Read cell data from a specific tab (supports A1 notation ranges)
-
-## 🔒 Security
-
-- Read-only access (can't modify your sheets)
-- OAuth tokens stored locally on your machine
-- No data sent to third parties
-- Revoke access anytime at: https://myaccount.google.com/permissions
-
-## 📖 Full Documentation
-
-See [README.md](./README.md) for complete documentation and advanced usage.
+Good luck! 🚀
