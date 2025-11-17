@@ -1,19 +1,22 @@
-# Quick Setup Guide
+# Setup Guide
 
 ## Overview
 
-This guide will help you set up the Google Sheets MCP server so Claude can access your Google Sheets. The setup uses a **personal authentication model** where each user authenticates with their own Google account.
+This guide will help you set up the Google Sheets MCP server. You'll authenticate with your own Google account and can only access sheets that are shared with you.
 
 **Setup Time**: 5-10 minutes
 
 **What You'll Need**:
 - Node.js 18+ and npm
-- A Google account with access to the sheets you want to use
-- OAuth credentials file from the maintainer
+- A Google account (the one you'll use to access sheets)
+- OAuth credentials file (provided by your administrator)
+- Your Google account email must be added as a test user in GCP (ask your administrator)
 
 ---
 
-## Step 1: Verify Prerequisites
+## Prerequisites
+
+### Step 1: Verify Node.js Installation
 
 Check that you have Node.js and npm installed:
 
@@ -26,15 +29,30 @@ npm --version
 
 **If missing**: Download from https://nodejs.org/ (LTS recommended) and restart your terminal
 
+### Step 2: Get Access from Administrator
+
+**Your administrator must complete these steps BEFORE you can authenticate**:
+
+✅ Created OAuth 2.0 credentials in Google Cloud Platform (GCP)
+✅ Added YOUR Google email as a test user in GCP OAuth consent screen
+✅ Shared specific Google Sheets with YOUR Google account
+✅ Provided you with the `google-sheets-mcp-credentials.json` file
+
+**Don't have access yet?** Contact your administrator to complete these steps.
+
 ---
 
-## Step 2: Get OAuth Credentials
+## Setup Steps
 
-Contact the repository maintainer to get the OAuth credentials file.
+### Step 1: Get OAuth Credentials
+
+Receive the OAuth credentials file from your administrator.
 
 **What you'll receive**: `google-sheets-mcp-credentials.json`
 
-**What this is**: OAuth app credentials that allow the authentication flow to work. This file is safe to share among team members.
+**What this is**: OAuth app credentials that enable the authentication flow. This file is shared among all users.
+
+**Important**: This is NOT your personal token - it's shared credentials for the OAuth app.
 
 **Where to save it**:
 
@@ -52,21 +70,30 @@ C:\Users\YourUsername\.google-sheets-mcp-credentials.json
 
 ---
 
-## Step 3: Build the Project
+### Step 2: Build the Project
+
+Clone the repository (if you haven't already) and build:
 
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd gdocs-mcp
+
+# Install dependencies
 npm install
+
+# Build the project
 npm run build
 ```
 
 **What this does**:
-- Installs dependencies
+- Installs all required dependencies
 - Compiles TypeScript to JavaScript
 - Creates `dist/` directory with compiled code
 
 ---
 
-## Step 4: Authenticate with Your Google Account
+### Step 3: Authenticate with YOUR Google Account
 
 Run the authentication script:
 
@@ -75,24 +102,26 @@ node exchange-token.js
 ```
 
 **What happens**:
-1. Opens your browser to Google login
-2. **Log in with YOUR Google account** (the one with access to the sheets)
-3. Approve access to Sheets/Drive
-4. Token automatically saved to `~/.google-sheets-mcp-token.json`
+1. Opens your browser to Google login page
+2. **IMPORTANT**: Log in with YOUR Google account (the one your manager added as a test user)
+3. Review and approve access to Google Sheets
+4. Your personal token is automatically saved to `~/.google-sheets-mcp-token.json`
 
-**Why your own account?**
-- The token is tied to YOUR Google account
-- You can only access sheets YOU have permission to access
-- If your token is compromised, only your access is affected
-- The maintainer will add your Google account to necessary sheets
+**Critical Points**:
+- ✅ Use the Google account email your manager added as a GCP test user
+- ✅ This creates YOUR personal authentication token
+- ✅ You can only access sheets shared with YOUR Google account
+- ✅ Your token is private and should never be shared with others
 
-**Troubleshooting**:
-- If the browser doesn't open, copy the URL from terminal and paste in your browser
-- Make sure you log in with the Google account that has access to the sheets
+**Authentication Failed?**
+- Verify your administrator added your Google account email as a test user in GCP
+- Ensure you're logging in with the correct Google account
+- If the browser doesn't open, copy the URL from terminal and paste manually
+- Contact your administrator if you see "access_denied" errors
 
 ---
 
-## Step 5: Configure Claude Code
+### Step 4: Configure Claude Code
 
 Ask Claude to configure your settings:
 
@@ -147,7 +176,7 @@ Edit `~/.claude/settings.json`:
 
 ---
 
-## Step 6: Test the Setup
+### Step 5: Test the Setup
 
 Ask Claude to test the connection:
 
@@ -186,47 +215,64 @@ Once setup is complete, Claude can use these tools:
 ## Troubleshooting
 
 ### "credentials.json not found"
-- Verify file exists: `ls ~/.google-sheets-mcp-credentials.json`
+- Verify file exists: `ls ~/.google-sheets-mcp-credentials.json` (Mac/Linux) or check `C:\Users\YourUsername\.google-sheets-mcp-credentials.json` (Windows)
 - Make sure you saved it to your home directory (not the project directory)
-- Contact maintainer to get the credentials file
+- Contact your administrator to get the credentials file
 
-### "token.json not found"
-- Run `node exchange-token.js` to authenticate
+### "token.json not found" or "Authentication required"
+- Run `node exchange-token.js` to authenticate with YOUR Google account
 - Make sure you complete the OAuth flow in the browser
+- Verify you're logging in with the Google account your administrator added as a test user
+
+### "Access denied" or "Error 403: access_denied"
+- **Most common issue**: Your Google account email was NOT added as a test user in GCP
+- Contact your administrator to add YOUR Google account email as a test user
+- Ensure your administrator added the EXACT email address you're using to authenticate
+- After being added, run `node exchange-token.js` again
 
 ### "MCP server not found" in Claude Code
-- Check path in `~/.claude/settings.json` is absolute, not relative
+- Check path in `~/.claude/settings.json` uses absolute path, not relative
 - Verify `dist/index.js` exists: `ls dist/index.js`
-- Restart Claude Code after editing settings
+- Restart Claude Code after editing settings.json
 
-### "Permission denied" when accessing sheets
-- Ask maintainer to add YOUR Google account to the sheet
-- Verify you authenticated with the correct Google account
-- Run `node exchange-token.js` again if needed
+### "Permission denied" when accessing specific sheets
+- Ask your administrator to share the specific Google Sheet with YOUR Google account
+- Verify the sheet URL is correct
+- Make sure you authenticated with the correct Google account (check which account you used in the OAuth flow)
+- Run `node exchange-token.js` again if you're unsure which account you used
 
 ### "Cannot find module googleapis"
-- Run `npm install` again
+- Run `npm install` in the project directory
 - Try deleting and reinstalling: `rm -rf node_modules && npm install`
 
-### Token expired
-- Run `node exchange-token.js` to refresh your token
-- Tokens may expire after extended inactivity
+### "Token expired" error
+- Run `node exchange-token.js` to refresh your personal token
+- Tokens may expire after extended inactivity (typically 7 days)
+- Your refreshed token will be saved automatically
 
 ---
 
 ## Security Notes
 
-**Files Created** (in your home directory, NOT in the repo):
-- `~/.google-sheets-mcp-credentials.json` - OAuth app credentials (from maintainer)
-- `~/.google-sheets-mcp-token.json` - YOUR authentication token
+**Files in Your Home Directory** (NOT in the repo):
+- `~/.google-sheets-mcp-credentials.json` - OAuth app credentials (shared among team, provided by manager)
+- `~/.google-sheets-mcp-token.json` - YOUR personal authentication token (NEVER share this)
 
-**Important**:
-- Never commit these files to git
-- The token is tied to YOUR Google account
-- You can only access sheets YOU have permission to access
-- Read-only access by default (unless you modify scopes)
+**Critical Security Points**:
+- ✅ The credentials file can be shared among team members (it's just the OAuth app config)
+- ❌ Your token file should NEVER be shared with anyone (it grants access as YOU)
+- ✅ You can only access sheets that are shared with YOUR Google account
+- ✅ All operations in Google Sheets will show YOUR name in the audit log
+- ✅ If your token is compromised, only YOUR access is affected
 
-**Revoke Access**: Visit https://myaccount.google.com/permissions to revoke access anytime
+**Access Control**:
+- Administrator controls who can authenticate by adding/removing test users in GCP
+- Administrator controls what sheets you can access by sharing/unsharing with your Google account
+- You control when to revoke access at https://myaccount.google.com/permissions
+
+**File Safety**:
+- Both files are in `.gitignore` and should never be committed to git
+- Both files are stored in your home directory, separate from the code repository
 
 ---
 
