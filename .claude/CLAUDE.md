@@ -14,9 +14,8 @@ Claude will guide you through:
 1. ✅ Checking prerequisites (Node.js, npm)
 2. 📥 Getting OAuth credentials from maintainer
 3. 🔨 Building the project
-4. 🔑 Authenticating with YOUR Google account
-5. ⚙️ Configuring Claude Code
-6. ✨ Verifying it works
+4. 🔑 Authenticating with YOUR Google account (automatically configures Claude Code)
+5. ✨ Verifying it works
 
 ## What This Does
 
@@ -42,8 +41,9 @@ Example:
 1. **Shared OAuth App**: The maintainer provides OAuth credentials (the "app registration")
 2. **Individual Authentication**: You authenticate once with YOUR Google account
 3. **Your Token**: A token is created tied to YOUR Google account
-4. **MCP Integration**: Claude uses YOUR token to access Google Sheets APIs
-5. **Your Permissions**: You can only access sheets that YOUR Google account has permission to access
+4. **Auto-Configuration**: The setup automatically configures Claude Code's global settings
+5. **MCP Integration**: Claude uses YOUR token to access Google Sheets APIs
+6. **Your Permissions**: You can only access sheets that YOUR Google account has permission to access
 
 **Security Benefits:**
 - Each user has their own token that can be revoked independently
@@ -104,17 +104,19 @@ These files should be in your home directory:
 ⚠️ **Security**: Never commit these files to git. The token is tied to YOUR Google account and provides access to sheets you have permission to access.
 
 ### Configuration Files
-Your Claude settings are updated at `~/.claude/settings.json` with:
+When you run `npm run auth`, your global Claude settings are automatically updated at `~/.claude/settings.json` with:
 ```json
 {
   "mcpServers": {
     "google-sheets": {
       "command": "node",
-      "args": ["/path/to/this/project/dist/index.js"]
+      "args": ["/absolute/path/to/this/project/dist/index.js"]
     }
   }
 }
 ```
+
+**Note**: The setup script automatically determines the absolute path, so you don't need to configure this manually!
 
 ---
 

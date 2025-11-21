@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "google-sheets": {
+      "command": "node",
+      "args": [
+        "dist/index.js"
+      ]
+    }
+  }
+}

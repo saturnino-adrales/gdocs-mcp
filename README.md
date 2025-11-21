@@ -2,6 +2,27 @@
 
 A Model Context Protocol (MCP) server that provides read-only access to Google Sheets. This allows Claude Desktop and other MCP clients to read data from your Google Spreadsheets using simple URL-based tools.
 
+## Quick Setup Guides
+
+**Choose your setup method**:
+
+### Recommended: Individual Authentication (Production-Ready)
+
+- 📗 **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Individual authentication setup (~5-10 minutes)
+  - Each user authenticates with their own Google account
+  - Individual audit trails and access control
+  - **Best for**: Production use, compliance, individual accountability
+  - **Requirements**: Administrator must provide credentials file and add you as test user
+
+### Alternative: Shared Token (Quick Testing)
+
+- 📘 **[QUICK_SETUP.md](./QUICK_SETUP.md)** - Fastest setup (~2 minutes) using shared token
+  - All users share administrator's token
+  - **Best for**: Small teams, prototypes, quick testing only
+  - **Trade-off**: No individual audit trails, all changes appear as administrator
+
+**For detailed technical information**, continue reading below.
+
 ## Features
 
 - **Read-only access** to your Google Sheets
@@ -33,77 +54,57 @@ This compiles TypeScript to JavaScript in the `dist/` directory.
 
 ## Google Cloud Setup
 
-You need a `google.json` file for authentication. You have two options:
+You need OAuth 2.0 credentials for authentication.
 
-### Option A: Request google.json from Author (Easier)
+### For Team Members
 
-**Quick setup** - Ask for pre-configured credentials:
+**Your administrator will provide**:
+1. OAuth credentials file (`google-sheets-mcp-credentials.json`)
+2. Add your Google account email as a test user in GCP
+3. Share relevant Google Sheets with your Google account
 
-1. **Request the file**: Contact the project maintainer via GitHub Issues and ask for `google.json`
-2. **Save it**:
-   ```bash
-   # Save as ~/.google-sheets-mcp-credentials.json
-   mv ~/Downloads/google.json ~/.google-sheets-mcp-credentials.json
-   ```
-3. **Done!** Skip to [First-Time Authorization](#first-time-authorization)
+**Your setup**: Follow [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
-**Note**: Shared `google.json` has usage quotas. For heavy use, create your own using GCP below.
+**Benefits**:
+- Individual user accountability
+- Administrator controls who can authenticate
+- Each user's actions show their name in audit logs
+- Secure and compliant
 
 ---
 
-### Option B: Create Your Own using GCP (Recommended for Production)
+### For Individual Developers (DIY)
 
-#### Step 1: Create a Google Cloud Project
+**If you're setting this up for yourself only**:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Click **Select a project** → **New Project**
-3. Enter a project name (e.g., "MCP Sheets Access")
-4. Click **Create**
-
-#### Step 2: Enable Google Sheets API
-
-1. In your project, go to **APIs & Services** → **Library**
-2. Search for "Google Sheets API"
-3. Click on it and press **Enable**
-
-#### Step 3: Create OAuth 2.0 Credentials and Download google.json
-
-1. Go to **APIs & Services** → **Credentials**
-2. Click **Create Credentials** → **OAuth client ID**
-3. If prompted, configure the OAuth consent screen:
-   - Choose **External** user type
-   - Fill in required fields (app name, user support email, developer email)
-   - Add your email to **Test users**
-   - Save and continue
-4. Back to **Create OAuth client ID**:
-   - Application type: **Desktop app**
-   - Name: "MCP Sheets Client" (or any name)
-   - Click **Create**
-5. **Download the JSON file** (click the download icon)
-6. **Save as `~/.google-sheets-mcp-credentials.json`**:
-
-```bash
-# Rename and move the downloaded file
-mv ~/Downloads/client_secret_*.json ~/.google-sheets-mcp-credentials.json
-```
-
-This is your `google.json` file!
+2. Create a new project
+3. Enable Google Sheets API
+4. Create OAuth 2.0 credentials:
+   - Go to **APIs & Services** → **Credentials**
+   - Create **OAuth client ID** → **Desktop app**
+   - Download the JSON file
+5. Configure OAuth consent screen (add yourself as test user)
+6. Save credentials as `~/.google-sheets-mcp-credentials.json`
+7. Continue to [First-Time Authorization](#first-time-authorization)
 
 ---
 
 ### First-Time Authorization
 
-*Applies to both Option A and Option B*
+After setting up credentials, authenticate by running:
 
-The first time you use the MCP server, you'll need to authorize it:
+```bash
+node exchange-token.js
+```
 
-1. Start the server (it will show an authorization URL)
-2. Visit the URL in your browser
-3. Sign in with your Google account
-4. Click **Allow** to grant access
-5. The authorization token will be saved automatically to `~/.google-sheets-mcp-token.json`
+**What happens**:
+1. Opens browser to Google login
+2. Sign in with your Google account
+3. Click **Allow** to grant access
+4. Token automatically saved to `~/.google-sheets-mcp-token.json`
 
-**Note**: The server will guide you through this process when you first run it.
+**Note**: Each user authenticates with their own Google account (even though credentials file is shared).
 
 ## Claude Desktop Configuration
 
@@ -239,42 +240,77 @@ npm run clean
 
 ### "Credentials file not found"
 
-Make sure you've saved your `google.json` file to:
-```
-~/.google-sheets-mcp-credentials.json
-```
+**Cause**: OAuth credentials file is missing
 
-**Need google.json?** [Request it from the author](#option-a-request-googlejson-from-author-easier) or [create your own using GCP](#option-b-create-your-own-using-gcp-recommended-for-production).
+**Solution**:
+- **Team members**: Get the credentials file from your administrator
+- **DIY users**: Create credentials in Google Cloud Console (see Google Cloud Setup above)
+- Verify file location: `ls ~/.google-sheets-mcp-credentials.json`
+
+### "Access denied" or "Error 403"
+
+**Cause**: Not added as a test user in GCP
+
+**Solution**:
+- Contact your administrator to add your Google account email as a test user in GCP OAuth consent screen
+- Ensure you're using the correct Google account to authenticate
+- Re-run: `node exchange-token.js`
 
 ### "Authentication token expired"
 
-Delete the saved token and re-authorize:
+**Cause**: Token needs refresh
+
+**Solution**:
 ```bash
+# Delete expired token
 rm ~/.google-sheets-mcp-token.json
+
+# Re-authenticate
+node exchange-token.js
 ```
 
-Then restart Claude Desktop to trigger re-authorization.
+### "Unable to read spreadsheet" or "Permission denied"
 
-### "Unable to read spreadsheet"
+**Cause**: Sheet not shared with your Google account
 
-Ensure:
-1. The spreadsheet URL is correct
-2. You have access to the spreadsheet (it's shared with your Google account)
-3. You've granted the app permission during OAuth flow
+**Solution**:
+1. Verify the spreadsheet URL is correct
+2. Ensure the sheet is shared with YOUR Google account email
+3. Check you authenticated with the correct Google account
+4. Ask your administrator to share the sheet with your Google account
 
 ### "Invalid Google Sheets URL"
 
-The URL must be in this format:
+**Cause**: Incorrect URL format
+
+**Required format**:
 ```
 https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
 ```
 
 ## Security Notes
 
-- **Read-only access**: This server only requests `spreadsheets.readonly` scope
-- **Local authentication**: OAuth tokens are stored locally at `~/.google-sheets-mcp-token.json`
-- **No data transmission**: All data stays between Google Sheets API and your local Claude Desktop
-- **Revoke access**: You can revoke access anytime at https://myaccount.google.com/permissions
+### Individual Authentication Model
+- **Individual Accountability**: Each user authenticates with their own Google account
+- **Audit Trails**: All operations show the individual user's name in Google Sheets history
+- **Access Control**: Administrator controls who can authenticate and what sheets they can access
+- **Token Isolation**: Each user has their own token; compromised token only affects one user
+
+### File Security
+- **Credentials file** (`~/.google-sheets-mcp-credentials.json`): OAuth app config, safe to share within team
+- **Token file** (`~/.google-sheets-mcp-token.json`): Personal authentication token, NEVER share
+
+### Data Protection
+- **Local authentication**: OAuth tokens stored locally on your machine
+- **No data transmission**: Data flows only between Google Sheets API and your local Claude instance
+- **Minimal scopes**: Only requests necessary permissions (spreadsheets access)
+- **Revoke access**: Visit https://myaccount.google.com/permissions anytime
+
+### Administrator Controls
+- Add/remove users via GCP test users
+- Share/unshare specific sheets with individual users
+- Monitor activity via Google Sheets version history
+- Revoke credentials file to disable all access
 
 ## License
 
