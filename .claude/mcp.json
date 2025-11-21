@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "google-sheets": {
+      "command": "node",
+      "args": [
+        "/Users/skysayson/my_projects/test-gdcos-flow4/gdocs-mcp/dist/index.js"
+      ]
+    }
+  }
+}
