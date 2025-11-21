@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { exec } from 'child_process';
+import { updateClaudeSettings } from './setup.js';
 
 const TOKEN_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-token.json");
 const CREDENTIALS_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-credentials.json");
@@ -110,12 +111,15 @@ async function authenticate() {
       console.log();
       console.log('📁 Token saved to:', TOKEN_PATH);
       console.log();
-      console.log('🎉 You can now use the Google Sheets MCP server!');
+
+      // Automatically update Claude settings
+      updateClaudeSettings();
+
+      console.log('🎉 Setup complete! You can now use the Google Sheets MCP server!');
       console.log();
       console.log('Next steps:');
-      console.log('  1. Make sure Claude Code is configured with this MCP server');
-      console.log('  2. Restart Claude Code if it\'s already running');
-      console.log('  3. Try asking Claude: "What Google Sheets tools are available?"');
+      console.log('  1. Restart Claude Code to load the new MCP server');
+      console.log('  2. Try asking Claude: "What Google Sheets tools are available?"');
       console.log();
     } catch (error) {
       console.error('\n❌ Error exchanging authorization code:');
