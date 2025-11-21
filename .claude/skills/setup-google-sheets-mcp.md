@@ -11,9 +11,8 @@
 1. Verify prerequisites (Node.js, npm)
 2. Get OAuth credentials file from maintainer
 3. Build the project
-4. Authenticate with YOUR Google account
-5. Configure Claude Code settings
-6. Verify the setup works
+4. Authenticate with YOUR Google account (automatically configures Claude Code)
+5. Verify the setup works
 
 ---
 
@@ -64,10 +63,10 @@ npm run build
 
 ## Step 4: Authenticate with YOUR Google Account
 
-Run the authentication script to create YOUR OWN token:
+Run the authentication script to create YOUR OWN token and automatically configure Claude Code:
 
 ```bash
-node exchange-token.js
+npm run auth
 ```
 
 **What happens**:
@@ -75,6 +74,7 @@ node exchange-token.js
 2. **Log in with YOUR Google account** (the account that has access to the sheets)
 3. Approve access to Sheets/Drive
 4. Token automatically saved to `~/.google-sheets-mcp-token.json`
+5. **Your global Claude Code settings are automatically updated** at `~/.claude/settings.json`
 
 **Why YOUR account?**
 - The token is tied to YOUR Google account
@@ -86,27 +86,13 @@ node exchange-token.js
 - Copy the URL from terminal output
 - Paste it in your browser manually
 
-⚠️ **Important**: Make sure you log in with the Google account that the maintainer has added to the shared sheets!
+⚠️ **Important**:
+- Make sure you log in with the Google account that the maintainer has added to the shared sheets!
+- After authentication completes, **restart Claude Code** to load the new MCP server
 
 ---
 
-## Step 5: Configure Claude Code Settings
-
-Claude will automatically configure your Claude Code settings. Just tell Claude:
-
-> "Configure my Claude Code settings to use the Google Sheets MCP server at: [paste the output from pwd]"
-
-Claude will:
-1. Read your current `~/.claude/settings.json`
-2. Add the Google Sheets MCP server configuration
-3. Update the settings file with the correct path
-4. Verify the configuration is correct
-
-**After Claude configures it**: Restart Claude Code to load the new settings.
-
----
-
-## Step 6: Verify Setup Works
+## Step 5: Verify Setup Works
 
 Ask Claude to test the connection:
 
@@ -131,17 +117,18 @@ Or provide a Google Sheets URL you have access to:
 - Contact the maintainer to get the credentials file
 
 ### "token.json not found"
-- Run `node exchange-token.js` to authenticate with YOUR Google account
+- Run `npm run auth` to authenticate with YOUR Google account
 - Make sure you complete the OAuth flow in the browser
 
 ### "MCP server not found" in Claude Code
-- Check the path in `~/.claude/settings.json` is correct (absolute path, not relative)
+- Make sure you ran `npm run auth` which automatically configures Claude settings
+- Check the path in `~/.claude/settings.json` is correct (should be absolute path)
 - Make sure `dist/index.js` exists: `ls dist/index.js`
-- Restart Claude Code after editing settings
+- Restart Claude Code after running `npm run auth`
 
 ### "Permission denied" or "Access denied" when accessing sheets
 - Ask the maintainer to add YOUR Google account (the one you authenticated with) to the specific sheet
-- Verify you authenticated with the correct Google account (run `node exchange-token.js` again if needed)
+- Verify you authenticated with the correct Google account (run `npm run auth` again if needed)
 - Check that the sheet URL is correct
 - Make sure you have View or Edit permissions on the sheet
 
@@ -150,7 +137,7 @@ Or provide a Google Sheets URL you have access to:
 - Delete `node_modules/` and reinstall: `rm -rf node_modules && npm install`
 
 ### Token expired or invalid
-- Run `node exchange-token.js` again to refresh YOUR token
+- Run `npm run auth` again to refresh YOUR token
 - Your token may expire after extended periods of inactivity
 
 ---
@@ -186,9 +173,9 @@ Once setup is complete, ask Claude to:
 
 If you get stuck:
 1. Check the **Troubleshooting** section above
-2. Try re-authenticating: `node exchange-token.js`
+2. Try re-authenticating: `npm run auth`
 3. Contact the maintainer to verify your Google account has been added to the necessary sheets
-4. Make sure the path in `~/.claude/settings.json` uses absolute path (not relative)
-5. Restart Claude Code after any configuration changes
+4. The `npm run auth` command automatically configures `~/.claude/settings.json` with the correct absolute path
+5. Restart Claude Code after running `npm run auth`
 
 Good luck! 🚀

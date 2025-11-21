@@ -39,7 +39,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "clean": "rm -rf dist",
-    "auth": "node authenticate.js"
+    "auth": "node authenticate.js",
+    "cleanup": "node cleanup-credentials.js"
   },
   "engines": {
     "node": ">=18"
