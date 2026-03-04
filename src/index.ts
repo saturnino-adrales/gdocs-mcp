@@ -1074,11 +1074,15 @@ Returns:
 async function main() {
   console.error("Google Sheets MCP Server starting...");
 
-  // Check for credentials
+  // Warn about missing credentials but don't exit - let tools report the error
   if (!fs.existsSync(CREDENTIALS_PATH)) {
-    console.error(`\nERROR: OAuth credentials file not found at: ${CREDENTIALS_PATH}`);
-    console.error("\nPlease follow setup instructions in README.md to create credentials.");
-    process.exit(1);
+    console.error(`WARNING: OAuth credentials file not found at: ${CREDENTIALS_PATH}`);
+    console.error("Tools will return setup instructions when called.");
+  }
+
+  if (!fs.existsSync(TOKEN_PATH)) {
+    console.error(`WARNING: Auth token not found at: ${TOKEN_PATH}`);
+    console.error("Run 'npm run auth' to authenticate.");
   }
 
   // Create transport
