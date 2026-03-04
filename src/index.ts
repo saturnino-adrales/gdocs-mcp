@@ -2,13 +2,18 @@
 /**
  * Google Sheets MCP Server
  *
- * This server provides read-only access to Google Sheets via MCP tools.
+ * This server provides read and write access to Google Sheets via MCP tools.
  * Authentication uses OAuth 2.0 for secure access to user's spreadsheets.
  *
- * Tools:
+ * Read Tools:
  * - google_sheets_get_info: Get spreadsheet metadata from URL
  * - google_sheets_list_tabs: List all tabs/sheets in a spreadsheet
  * - google_sheets_get_tab_data: Get data from a specific tab
+ *
+ * Write Tools:
+ * - google_sheets_update_cells: Update specific cells in a spreadsheet
+ * - google_sheets_append_rows: Append rows to a spreadsheet
+ * - google_sheets_clear_range: Clear cell contents in a range
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -23,7 +28,7 @@ import { fileURLToPath } from "url";
 // Constants
 const CHARACTER_LIMIT = 25000;
 const SCOPES = [
-  "https://www.googleapis.com/auth/spreadsheets.readonly",
+  "https://www.googleapis.com/auth/spreadsheets",  // Full read-write access
   "https://www.googleapis.com/auth/drive.readonly"
 ];
 const TOKEN_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-token.json");
@@ -72,6 +77,48 @@ const GetTabDataInputSchema = {
 type GetInfoInput = z.infer<z.ZodObject<typeof GetInfoInputSchema>>;
 type ListTabsInput = z.infer<z.ZodObject<typeof ListTabsInputSchema>>;
 type GetTabDataInput = z.infer<z.ZodObject<typeof GetTabDataInputSchema>>;
+
+// Write tool schemas
+const UpdateCellsInputSchema = {
+  url: z.string()
+    .url("Must be a valid URL")
+    .describe("Google Sheets URL"),
+  tab_name: z.string()
+    .min(1, "Tab name cannot be empty")
+    .describe("Name of the tab/sheet"),
+  range: z.string()
+    .min(1, "Range cannot be empty")
+    .describe("Range in A1 notation (e.g., 'B7:M20')"),
+  values: z.array(z.array(z.any()))
+    .describe("2D array of values to write")
+};
+
+const AppendRowsInputSchema = {
+  url: z.string()
+    .url("Must be a valid URL")
+    .describe("Google Sheets URL"),
+  tab_name: z.string()
+    .min(1, "Tab name cannot be empty")
+    .describe("Name of the tab/sheet"),
+  values: z.array(z.array(z.any()))
+    .describe("2D array of rows to append")
+};
+
+const ClearRangeInputSchema = {
+  url: z.string()
+    .url("Must be a valid URL")
+    .describe("Google Sheets URL"),
+  tab_name: z.string()
+    .min(1, "Tab name cannot be empty")
+    .describe("Name of the tab/sheet"),
+  range: z.string()
+    .min(1, "Range cannot be empty")
+    .describe("Range in A1 notation to clear")
+};
+
+type UpdateCellsInput = z.infer<z.ZodObject<typeof UpdateCellsInputSchema>>;
+type AppendRowsInput = z.infer<z.ZodObject<typeof AppendRowsInputSchema>>;
+type ClearRangeInput = z.infer<z.ZodObject<typeof ClearRangeInputSchema>>;
 
 // Utility functions
 function extractSpreadsheetId(url: string): string {
@@ -838,6 +885,177 @@ Returns:
         content: [{
           type: "text",
           text
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: handleError(error)
+        }]
+      };
+    }
+  }
+);
+
+// Write tools
+server.registerTool(
+  "google_sheets_update_cells",
+  {
+    title: "Update Google Sheets Cells",
+    description: `Update cells in a Google Spreadsheet.
+
+This tool writes values to a specific range in a spreadsheet. The range must match the dimensions of the values array.
+
+Args:
+  - url (string): Full Google Sheets URL
+  - tab_name (string): Name of the tab/sheet
+  - range (string): Range in A1 notation (e.g., 'B7:M20')
+  - values (array): 2D array of values to write
+
+Example:
+  - url: "https://docs.google.com/spreadsheets/d/xxx/edit"
+  - tab_name: "Sheet1"
+  - range: "B7:D9"
+  - values: [["A", "B", "C"], ["D", "E", "F"], ["G", "H", "I"]]
+
+Returns:
+  Confirmation of updated cells count and range`,
+    inputSchema: UpdateCellsInputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true
+    }
+  },
+  async (params: UpdateCellsInput) => {
+    try {
+      const auth = await getAuthenticatedClient();
+      const sheets = google.sheets({ version: "v4", auth });
+      const spreadsheetId = extractSpreadsheetId(params.url);
+      const fullRange = `'${params.tab_name}'!${params.range}`;
+
+      const response = await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: fullRange,
+        valueInputOption: "USER_ENTERED",
+        requestBody: { values: params.values }
+      });
+
+      return {
+        content: [{
+          type: "text",
+          text: `Successfully updated ${response.data.updatedCells} cells in range ${fullRange}`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: handleError(error)
+        }]
+      };
+    }
+  }
+);
+
+server.registerTool(
+  "google_sheets_append_rows",
+  {
+    title: "Append Rows to Google Sheets",
+    description: `Append rows to the end of data in a Google Spreadsheet tab.
+
+This tool adds new rows after the last row of existing data in the specified tab.
+
+Args:
+  - url (string): Full Google Sheets URL
+  - tab_name (string): Name of the tab/sheet
+  - values (array): 2D array of rows to append
+
+Example:
+  - values: [["Row1Col1", "Row1Col2"], ["Row2Col1", "Row2Col2"]]
+
+Returns:
+  Confirmation of appended rows count`,
+    inputSchema: AppendRowsInputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+      openWorldHint: true
+    }
+  },
+  async (params: AppendRowsInput) => {
+    try {
+      const auth = await getAuthenticatedClient();
+      const sheets = google.sheets({ version: "v4", auth });
+      const spreadsheetId = extractSpreadsheetId(params.url);
+
+      const response = await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `'${params.tab_name}'`,
+        valueInputOption: "USER_ENTERED",
+        insertDataOption: "INSERT_ROWS",
+        requestBody: { values: params.values }
+      });
+
+      return {
+        content: [{
+          type: "text",
+          text: `Successfully appended ${params.values.length} row(s) to ${params.tab_name}`
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: "text",
+          text: handleError(error)
+        }]
+      };
+    }
+  }
+);
+
+server.registerTool(
+  "google_sheets_clear_range",
+  {
+    title: "Clear Google Sheets Range",
+    description: `Clear cell contents in a specified range.
+
+This tool removes all values from cells in the specified range, but preserves formatting.
+
+Args:
+  - url (string): Full Google Sheets URL
+  - tab_name (string): Name of the tab/sheet
+  - range (string): Range in A1 notation to clear (e.g., 'A1:D10')
+
+Returns:
+  Confirmation of cleared range`,
+    inputSchema: ClearRangeInputSchema,
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true
+    }
+  },
+  async (params: ClearRangeInput) => {
+    try {
+      const auth = await getAuthenticatedClient();
+      const sheets = google.sheets({ version: "v4", auth });
+      const spreadsheetId = extractSpreadsheetId(params.url);
+      const fullRange = `'${params.tab_name}'!${params.range}`;
+
+      await sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: fullRange
+      });
+
+      return {
+        content: [{
+          type: "text",
+          text: `Successfully cleared range ${fullRange}`
         }]
       };
     } catch (error) {
