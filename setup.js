@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const CLAUDE_SETTINGS_PATH = path.join(process.env.HOME || "", ".claude", "settings.json");
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || "";
+const CLAUDE_SETTINGS_PATH = path.join(HOME_DIR, ".claude", "settings.json");
 const PROJECT_ROOT = __dirname;
 const MCP_SERVER_PATH = path.join(PROJECT_ROOT, "dist", "index.js");
 

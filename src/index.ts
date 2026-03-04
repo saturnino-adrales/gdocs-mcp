@@ -31,8 +31,9 @@ const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",  // Full read-write access
   "https://www.googleapis.com/auth/drive.readonly"
 ];
-const TOKEN_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-token.json");
-const CREDENTIALS_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-credentials.json");
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || "";
+const TOKEN_PATH = path.join(HOME_DIR, ".google-sheets-mcp-token.json");
+const CREDENTIALS_PATH = path.join(HOME_DIR, ".google-sheets-mcp-credentials.json");
 
 // Response format enum
 enum ResponseFormat {

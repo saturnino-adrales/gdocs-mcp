@@ -8,8 +8,9 @@ import * as http from 'http';
 import { URL } from 'url';
 import { updateClaudeSettings } from './setup.js';
 
-const TOKEN_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-token.json");
-const CREDENTIALS_PATH = path.join(process.env.HOME || "", ".google-sheets-mcp-credentials.json");
+const HOME_DIR = process.env.HOME || process.env.USERPROFILE || "";
+const TOKEN_PATH = path.join(HOME_DIR, ".google-sheets-mcp-token.json");
+const CREDENTIALS_PATH = path.join(HOME_DIR, ".google-sheets-mcp-credentials.json");
 const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
   "https://www.googleapis.com/auth/drive.readonly"
